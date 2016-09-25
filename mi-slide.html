@@ -3,6 +3,7 @@
 <link rel="import" href="../neon-animation/neon-animatable.html">
 <link rel="import" href="../neon-animation/neon-animations.html">
 <link rel="import" href="../iron-resizable-behavior/iron-resizable-behavior.html">
+<link rel="import" href="../iron-a11y-keys-behavior/iron-a11y-keys-behavior.html">
 <script src="../fabric.js/dist/fabric.js"></script>
 
 <!--
@@ -31,6 +32,12 @@ Drawing (and sharing) slide as Silvio Meira.
         height: 100%;
         background: rgba(0,0,0,0.08);
       }
+      neon-animated-pages img {
+        height: 100%;
+      }
+      .slides-page {
+        text-align: center;
+      }
       .brand {
         display: block;
         position: absolute;
@@ -56,9 +63,6 @@ Drawing (and sharing) slide as Silvio Meira.
       }
     </style>
     <div class="content-wrapper">
-        <!-- The control of pages will be provided by iron-a11y-keys -->
-        <iron-a11y-keys id="a11y" target="[[_target]]" keys="left right" 
-        key-bindings="{ 'left': '_onPrevClick', 'right': '_onNextClick'}"></iron-a11y-keys>
         <!-- Pages. A repeat flow based on slides.json -->
         <neon-animated-pages id="pages" selected="[[selected]]" entry-animation="[[entryAnimation]]" exit-animation="[[exitAnimation]]">
           <template is="dom-repeat" items="{{slides}}">
@@ -84,7 +88,7 @@ Drawing (and sharing) slide as Silvio Meira.
     Polymer({
       is: 'mi-slide',
       behaviors: [
-        Polymer.IronResizableBehavior
+        Polymer.IronResizableBehavior, Polymer.IronA11yKeysBehavior
       ],
       listeners: {
         // 'tap': '_onNextClick',
@@ -144,7 +148,8 @@ Drawing (and sharing) slide as Silvio Meira.
         /** `backgroundColor` sets the background color of the canvas */
         backgroundColor: {
           type: String,
-          value: 'rgba(255,255,255,1)' 
+          value: 'rgba(255,255,255,1)',
+          observer: "_backgroundColorChanged"
         },
         /** TODO: not implemented yet
          * `streamingPoints` array with dots x,y generated 
@@ -155,7 +160,31 @@ Drawing (and sharing) slide as Silvio Meira.
             var arr = new Array;
             return arr;
           }
-        } 
+        },
+        /** `historySlides` write the drawn lines in presentation.
+         */
+        historySlides: {
+          type: Array,
+          value: function() {
+              var arr = new Array;
+              return arr;
+          }
+        },
+        preventDefault: {
+          type: Boolean,
+          value: true,
+          notify: true
+        },  
+        keyEventTarget: {
+          type: Object,
+          value: function() {
+            return document.body;
+          }
+        }
+      },
+      keyBindings: {
+        'left': '_onPrevClick',
+        'right': '_onNextClick',
       },
       ready: function() {
           var elem = this.querySelector("canvas");
@@ -205,6 +234,7 @@ Drawing (and sharing) slide as Silvio Meira.
           // brush setup
           this._colorBrushChanged();
           this._widthBrushChanged();
+          this._backgroundColorChanged()
       },
       /** `locker` locks horizontal and vertical move, rotation 
        * and scaling properties of a fabric.Path.
@@ -233,34 +263,36 @@ Drawing (and sharing) slide as Silvio Meira.
           if (this.canvas)
               this.canvas.freeDrawingBrush.width = this.widthBrush;
       },
+      _backgroundColorChanged: function() {
+          var contentWrapper = this.querySelector('.content-wrapper');
+          contentWrapper.style.background = this.backgroundColor;
+      },
       /** `_onPrevClick` transition when left key pressed */
-      _onPrevClick: function() {
+      _onPrevClick: function(event) {
         this.entryAnimation = 'slide-from-left-animation';
         this.exitAnimation = 'slide-right-animation';
-        this.selected = this.selected === 0 ? this._nPages - 1 : (this.selected - 1);
+        this.selected = this.selected === 0 ? this._nPages - 1 : (this.selected - 1);    
+        this._afterClick(event);  
       },
       /** `_onNextClick` transition when right key pressed */
-      _onNextClick: function() {
+      _onNextClick: function(event) {
         this.entryAnimation = 'slide-from-right-animation';
         this.exitAnimation = 'slide-left-animation';
-        this.selected = this.selected === this._nPages - 1 ? 0 : (this.selected + 1);
+        this.selected = this.selected === this._nPages - 1 ? 0 : (this.selected + 1);   
+        this._afterClick(event);      
       },
-      /** `_onUpClick` transition when key up pressed */
-      _onUpClick: function() {
-        this.entryAnimation = 'slide-from-top-animation';
-        this.exitAnimation = 'slide-down-animation';
-        this.selected = this.selected === this._nPages - 1 ? 0 : (this.selected + 1);
-      },
-      /** `_onDownClick` transition when key down pressed */
-      _onDownClick: function() {
-        this.entryAnimation = 'slide-from-bottom-animation';
-        this.exitAnimation = 'slide-up-animation';
-        this.selected = this.selected === 0 ? this._nPages - 1 : (this.selected - 1);
-      },
+      _afterClick: function(event) {
+        // clear canvas
+        this.canvas.clear();
+        // avoid propagation
+        if (this.preventDefault) {
+          event.preventDefault();
+        }  
+      },     
       _onIronResize: function(){
-          console.log("resize done");
           var canvas = this.$.canvas;
           var canvasUp = this.querySelector('.upper-canvas');
+          var canvasContainer = this.querySelector('.canvas-container');
           // original canvasl
           canvas.width = this.offsetWidth;
           canvas.height = this.offsetHeight;
@@ -271,6 +303,11 @@ Drawing (and sharing) slide as Silvio Meira.
           canvasUp.height = this.offsetHeight;          
           canvasUp.style.width = canvas.width + 'px';
           canvasUp.style.height = canvas.height + 'px';
+          // fabric canvasContainer
+          canvasContainer.width = this.offsetWidth;
+          canvasContainer.height = this.offsetHeight;          
+          canvasContainer.style.width = canvas.width + 'px';
+          canvasContainer.style.height = canvas.height + 'px';          
           // fabric's instance canvas
           this.canvas.width = canvas.width;
           this.canvas.height = canvas.height;
