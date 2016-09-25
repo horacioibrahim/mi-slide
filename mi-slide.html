@@ -1,0 +1,268 @@
+<link rel="import" href="../polymer/polymer.html">
+<link rel="import" href="../neon-animation/neon-animated-pages.html">
+<link rel="import" href="../neon-animation/neon-animatable.html">
+<link rel="import" href="../neon-animation/neon-animations.html">
+<script src="../fabric.js/dist/fabric.js"></script>
+
+<!--
+`mi-slide`
+Drawing (and sharing) slide as Silvio Meira.
+
+@demo demo/index.html 
+-->
+<dom-module id="mi-slide">
+  <template>
+    <style>
+      :host {
+        position: relative;
+        display: block;
+        box-sizing: border-box;
+        overflow: hidden;
+        min-height: 100px;
+        cursor: pointer;
+      }
+      neon-animated-pages {
+        position: absolute;
+        display: block;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0,0,0,0.08);
+      }
+      .brand {
+        display: block;
+        position: absolute;
+        text-align: center;
+        width: 100%;
+        height: 100%;
+        color: rgba(0,0,0,.30);
+        font-size: 2em;
+      }
+      .brand-table {
+        display: table;
+        width: 100%;
+        height: 100%;        
+      }
+      .brand-cell {
+        display: table-cell;
+        vertical-align: middle;
+        width: 100%;
+      }
+      #canvas {
+        width: 100%;
+        height: 100%;
+      }
+    </style>
+    <div class="content-wrapper">
+        <!-- The control of pages will be provided by iron-a11y-keys -->
+        <iron-a11y-keys id="a11y" target="[[target]]" keys="left right" 
+        key-bindings="{ 'left': '_onPrevClick', 'right': '_onNextClick'}"></iron-a11y-keys>
+        <!-- Pages. A repeat flow based on slides.json -->
+        <neon-animated-pages id="pages" selected="[[selected]]" entry-animation="[[entryAnimation]]" exit-animation="[[exitAnimation]]">
+          <template is="dom-repeat" items="{{slides}}">
+              <neon-animatable>
+                <div class="slides-page">
+                    <img src="{{item}}">
+                </div>
+              </neon-animatable>
+          </template>
+        </neon-animated-pages> 
+        <!-- Remove this if necessary -->
+        <div class="brand">
+          <div class="brand-table">
+            <div class="brand-cell">mi-slide</div>
+          </div>
+        </div>  
+        <!-- Canvas overlay -->
+        <canvas id="canvas"  width="400" height="400"></canvas>
+    </div>
+  </template>
+
+  <script>
+    Polymer({
+      is: 'mi-slide',
+      listeners: {
+        // 'tap': '_onNextClick'
+      },
+      properties: {
+        /** `slides` slides pages formatted into JSON specs
+         * [{'title': 'Abc', 'backgroungImage': 'https://imgae.com/100/100'},...]
+         * 
+         */
+        slides: {
+          type: Array,
+          value: function(){
+            return ['img1.png', 'img2.png', 'img3.png'];
+          },
+          observer: "_slidesChanged"
+        },
+        /** `selected` variable hold the seletec page */
+        selected: {
+          type: Number,
+          value: 0
+        },
+        /** `_nPages` numbers of pages of the presentation 
+         * automatically calculates by numbers of slides in JSON. 
+        */
+        _nPages: Number,
+        /** `_currentPage` current page. 
+        */
+        _currentPage: Number,        
+        /** `room` where the slide live stream happens.
+         * 
+         */
+        room: {
+          type: String,
+          value: 'miSlide',
+        },
+        /** `streamUrl` remote services to stores live event 
+         * as pubnub. 
+         */
+        streamUrl: {
+          type: String
+        },
+        target: {
+          type: Object,
+          value: function() {
+            return document.querySelector("body");
+          }
+        },
+        //****************** SETUP CANVAS ************************
+        /** `canvas` the canvas wrapper created by Fabric. 
+         */        
+        canvas: Object,
+        /** `colorBrush` brush color can be any regular HTML color 
+         * as string.
+         */
+        colorBrush: {
+          type: String,
+          observer: "_colorBrushChanged"
+        },
+        /** `widthBrush` this is width of the pencil (point) */
+        widthBrush: {
+          type: Number,
+          observer: "_widthBrushChanged"
+        },
+        /** `backgroundColor` sets the background color of the canvas */
+        backgroundColor: {
+          type: String,
+          value: 'rgba(255,255,255,1)' 
+        } 
+      },
+      ready: function() {
+          var elem = this.querySelector("canvas");
+          // HINT for random numbers based on:
+          // https://github.com/rwth-acis/drawing-overlay/blob/master/drawing-overlay.html
+          elem.id += Math.floor((Math.random() * 100) + 1);
+          this.initialize(elem.id);
+          if (!this.colorBrush) {
+            this.colorBrush = 'rgba(220, 14, 61, 1)';
+          };
+          if (!this.widthBrush) {
+            this.widthBrush = 3;
+          }
+          console.log("CANVAS ABAIXO:");
+          console.log(this.canvas);
+      },
+      _counterPages: function() {
+        var pages = this.querySelectorAll("neon-animatable");
+        return pages.length;
+      },
+      _slidesChanged: function(){
+        this.async(function(){
+          this._nPages = this._counterPages();
+        }, 300);
+      },
+      initialize: function(referenceId) {
+          // create instance
+          this.canvas = new fabric.Canvas(referenceId);
+          // listening changes
+          this.canvas.on('path:created', function(obj){
+              var lastOrder = this.canvas._objects.length - 1;
+              var lastObj = this.canvas._objects[lastOrder];
+              this.locker(lastObj);
+              this.noBorderAndControls(lastObj);
+          });
+          // activate drawing mode.
+          this.canvas.isDrawingMode = true;
+          // brush setup
+          this._colorBrushChanged();
+          this._widthBrushChanged();
+      },
+      /** `locker` locks all properties of a fabric.Path(or object fabric) 
+       * 
+       * @obj: is a fabric.Path (fabric's object)
+      */
+      locker: function(obj){
+          obj.lockMovementX = true;
+          obj.lockMovementY = true;
+          obj.lockRotation = true;
+          obj.lockScaling = true;
+      },
+      /** `noBorderAndControls` hide bordes and controls of the object. 
+       * 
+       * @obj: is a fabric.Path (fabric's object) 
+      */
+      noBorderAndControls: function(obj) {
+          obj.hasControls = false;
+          obj.hasBorders = false;
+          /* 
+          obj.set({
+              borderColor: 'red', // transparent
+              cornerColor: 'green',
+              cornerSize: 6 // or 0
+          });
+          */
+      },
+      _colorBrushChanged: function() {
+          this.canvas.freeDrawingBrush.color = this.colorBrush; 
+      },
+      _widthBrushChanged: function() {
+          this.canvas.freeDrawingBrush.width = this.widthBrush;
+      },
+      /**
+       * Adds a drawing object to the current drawing on the canvas.
+       *
+       * @param object A drawing object.
+       */
+      addObject: function(object) {
+          var canvas = this.canvas;
+          fabric.util.enlivenObjects([object], function(objects) {
+              var origRenderOnAddRemove = canvas.renderOnAddRemove;
+              canvas.renderOnAddRemove = false;
+              objects.forEach(function(o) {
+                  canvas.add(o);
+              });
+              canvas.renderOnAddRemove = origRenderOnAddRemove;
+              canvas.renderAll();
+          });
+      },
+      /** `_onPrevClick` transition when left key pressed */
+      _onPrevClick: function() {
+        this.entryAnimation = 'slide-from-left-animation';
+        this.exitAnimation = 'slide-right-animation';
+        this.selected = this.selected === 0 ? this._nPages - 1 : (this.selected - 1);
+      },
+      /** `_onNextClick` transition when right key pressed */
+      _onNextClick: function() {
+        this.entryAnimation = 'slide-from-right-animation';
+        this.exitAnimation = 'slide-left-animation';
+        this.selected = this.selected === this._nPages - 1 ? 0 : (this.selected + 1);
+      },
+      /** `_onUpClick` transition when key up pressed */
+      _onUpClick: function() {
+        this.entryAnimation = 'slide-from-top-animation';
+        this.exitAnimation = 'slide-down-animation';
+        this.selected = this.selected === this._nPages - 1 ? 0 : (this.selected + 1);
+      },
+      /** `_onDownClick` transition when key down pressed */
+      _onDownClick: function() {
+        this.entryAnimation = 'slide-from-bottom-animation';
+        this.exitAnimation = 'slide-up-animation';
+        this.selected = this.selected === 0 ? this._nPages - 1 : (this.selected - 1);
+      }                  
+    });
+  </script>
+</dom-module>
+
