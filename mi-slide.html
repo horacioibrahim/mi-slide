@@ -57,7 +57,7 @@ Drawing (and sharing) slide as Silvio Meira.
     </style>
     <div class="content-wrapper">
         <!-- The control of pages will be provided by iron-a11y-keys -->
-        <iron-a11y-keys id="a11y" target="[[target]]" keys="left right" 
+        <iron-a11y-keys id="a11y" target="[[_target]]" keys="left right" 
         key-bindings="{ 'left': '_onPrevClick', 'right': '_onNextClick'}"></iron-a11y-keys>
         <!-- Pages. A repeat flow based on slides.json -->
         <neon-animated-pages id="pages" selected="[[selected]]" entry-animation="[[entryAnimation]]" exit-animation="[[exitAnimation]]">
@@ -114,20 +114,10 @@ Drawing (and sharing) slide as Silvio Meira.
         /** `_currentPage` current page. 
         */
         _currentPage: Number,        
-        /** `room` where the slide live stream happens.
+        /** `_target` main object to listen keys pressed.
          * 
          */
-        room: {
-          type: String,
-          value: 'miSlide',
-        },
-        /** `streamUrl` remote services to stores live event 
-         * as pubnub. 
-         */
-        streamUrl: {
-          type: String
-        },
-        target: {
+        _target: {
           type: Object,
           value: function() {
             return document.querySelector("body");
@@ -142,17 +132,29 @@ Drawing (and sharing) slide as Silvio Meira.
          */
         colorBrush: {
           type: String,
+          value: 'red',
           observer: "_colorBrushChanged"
         },
         /** `widthBrush` this is width of the pencil (point) */
         widthBrush: {
           type: Number,
+          value: 3,
           observer: "_widthBrushChanged"
         },
         /** `backgroundColor` sets the background color of the canvas */
         backgroundColor: {
           type: String,
           value: 'rgba(255,255,255,1)' 
+        },
+        /** TODO: not implemented yet
+         * `streamingPoints` array with dots x,y generated 
+         * by mouse:move */
+        streamingPoints: {
+          type: Array,
+          value: function(){
+            var arr = new Array;
+            return arr;
+          }
         } 
       },
       ready: function() {
@@ -162,15 +164,6 @@ Drawing (and sharing) slide as Silvio Meira.
           // elem.id += Math.floor((Math.random() * 100) + 1);
           // this.canvasid = elem.id; 
           this.initialize("canvas");
-          if (!this.colorBrush) {
-            this.colorBrush = 'rgba(220, 14, 61, 1)';
-          };
-          if (!this.widthBrush) {
-            this.widthBrush = 3;
-          }
-         
-          console.log(this.offsetWidth);
-          console.log(this.offsetHeight);
       },
       _counterPages: function() {
         var pages = this.querySelectorAll("neon-animatable");
@@ -181,6 +174,12 @@ Drawing (and sharing) slide as Silvio Meira.
           this._nPages = this._counterPages();
         }, 300);
       },
+      /** `initialize` setup of the fabric.js where controls and borders
+       *  is disabled. The isDrawingMode is configured to true.
+       * 
+       * @referenceId[String]: hold canvas id attribute value used as
+       * selector.
+       */
       initialize: function(referenceId) {
           // 
           var self = this;
@@ -192,14 +191,23 @@ Drawing (and sharing) slide as Silvio Meira.
               var lastObj = self.canvas._objects[lastOrder];
               self.locker(lastObj);
               self.noBorderAndControls(lastObj);
+              self._fireToJSON();
           });
+          // streaming point-to-point 
+          this.canvas.on('mouse:down', function(obj){
+              self.canvas.on('mouse:move', self._moveHandler);              
+          });
+          this.canvas.on('mouse:up', function(obj){
+              self.canvas.off('mouse:move', self._moveHandler);  
+          });           
           // activate drawing mode.
           this.canvas.isDrawingMode = true;
           // brush setup
           this._colorBrushChanged();
           this._widthBrushChanged();
       },
-      /** `locker` locks all properties of a fabric.Path(or object fabric) 
+      /** `locker` locks horizontal and vertical move, rotation 
+       * and scaling properties of a fabric.Path.
        * 
        * @obj: is a fabric.Path (fabric's object)
       */
@@ -216,19 +224,14 @@ Drawing (and sharing) slide as Silvio Meira.
       noBorderAndControls: function(obj) {
           obj.hasControls = false;
           obj.hasBorders = false;
-          /* 
-          obj.set({
-              borderColor: 'red', // transparent
-              cornerColor: 'green',
-              cornerSize: 6 // or 0
-          });
-          */
       },
       _colorBrushChanged: function() {
-          this.canvas.freeDrawingBrush.color = this.colorBrush; 
+          if (this.canvas)
+              this.canvas.freeDrawingBrush.color = this.colorBrush; 
       },
       _widthBrushChanged: function() {
-          this.canvas.freeDrawingBrush.width = this.widthBrush;
+          if (this.canvas)
+              this.canvas.freeDrawingBrush.width = this.widthBrush;
       },
       /** `_onPrevClick` transition when left key pressed */
       _onPrevClick: function() {
@@ -273,7 +276,22 @@ Drawing (and sharing) slide as Silvio Meira.
           this.canvas.height = canvas.height;
           // reset
           this.canvas.renderAll();
-      }                 
+      },
+      /** TODO: not implemented yet
+       * `_moveHandler` get x,y from mouse:move and create streaming
+       * for update drawing in the remote view.
+       */
+      _moveHandler: function(obj){
+          var mi = document.querySelector('mi-slide');  
+          mi.streamingPoints.push([obj.e.x, obj.e.y]);
+      },
+      /** `_fireToJSON` fire events with JSON values
+       * 
+       */
+      _fireToJSON: function(){
+          var d = this.canvas.toJSON();
+          this.fire('mi-slide:json', {dump: d});
+      }                    
     });
   </script>
 </dom-module>

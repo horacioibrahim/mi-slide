@@ -40,25 +40,26 @@ Or [download a ZIP](https://github.com/horacioibrahim/slide-mi/archive/gh-pages.
 
 Attribute   | Options   | Default   | Description
 ---         | ---       |---        |---  
-`auto`      | *boolean* | `false`   | Specifies if the API speech should started when page loads.
-`forward`   | *string*  | `undefined`| Specifies the list of the words *separated by comma* to pass slides forward.
-`backward`   | *string*  | `undefined`| Specifies the list of the words *separated by comma* to pass slides backward.
-`text`   | *string*  | `undefined`| Stores the string of the recognized text.
-`language` | *string* | `en_US` | Specifies the language to be reconized. 
+`slides` | *array* | `[]` | slides pages formatted into JSON specs.
+`canvas`   | *object*  | `undefined`|  canvas wrapper created by Fabric.. 
+`backgroundColor`  | *string* | `rgba(255,255,255,1)` |  sets the background color of the canvas.
+`colorBrush`   | *string*  | `rgba(220, 14, 61, 1)`| brush color can be any regular HTML color as string.
+`widthBrush`   | *number*  | `3`| is width of the pencil (point).
+`selected` | *number* | `0` | variable hold the seletec page. 
 
 
 ### Methods
 
 Method  | Parameters    | Returns   | Description
 ---     |---            |---        |---
-`start()`| None.        |Nothing    | Triggers the voice-elements to be played.
-`stop()`| None.        |Nothing    | Triggers the voice-elements to be stoped.
+`initialize(refid)`| refid       | Nothing    | initialize setup of the fabric.js where controls and borders is disabled. The isDrawingMode is configured to true.
+`locker(obj)`| fabric.Path        |Nothing    | locks horizontal and vertical move, rotation and scaling properties of a fabric.Path.
+`noBorderAndControls(obj)`| fabric.Path      |Nothing    | hide bordes and controls of the object.
 
 ### Events
 Event   | Description
 ---     | ---
-`forward`| Triggers when the slide-chimp matchs word(s) defined in `foward` with speech recognition.
-`backward`| Triggers when the slide-chimp matchs word(s) defined in `backward` with speech recognition.
+`mi-slide:json`| ire events with JSON values.
 
 ## Development
 
