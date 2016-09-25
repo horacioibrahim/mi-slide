@@ -1,13 +1,13 @@
 {
   "name": "mi-slide",
-  "description": "Drawing [and sharing] slide as Silvio Meira",
+  "description": "Web Component that allows you to drawing and share slides in live.",
   "main": "mi-slide.html",
   "license": "MIT",
   "destination_path": "bower_components",
   "authors": [
     "Horacio Ibrahim <horacioibrahim@gmail.com>"
   ],
-  "private": false,  
+  "private": false,
   "dependencies": {
     "polymer": "Polymer/polymer#^1.4.0",
     "iron-pages": "PolymerElements/iron-pages#^1.0.8",
@@ -35,6 +35,5 @@
     "url": "git://github.com/horacioibrahim/slide-mi.git",
     "type": "git"
   },
-  "homepage": "http://horacioibrahim.github.io/slide-mi",
-  "description": "Web Component that allows you to drawing and share slides in live."   
+  "homepage": "http://horacioibrahim.github.io/slide-mi"
 }
