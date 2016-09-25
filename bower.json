@@ -1,13 +1,14 @@
 {
   "name": "mi-slide",
-  "description": "Drawing and sharing slide como Silvio Meira",
+  "description": "Drawing [and sharing[ slide as Silvio Meira",
   "main": "mi-slide.html",
   "dependencies": {
     "polymer": "Polymer/polymer#^1.4.0",
     "iron-pages": "PolymerElements/iron-pages#^1.0.8",
     "neon-animation": "PolymerElements/neon-animation#^1.2.4",
     "fabric.js": "fabric#^1.6.4",
-    "iron-a11y-keys": "PolymerElements/iron-a11y-keys#^1.0.6"
+    "iron-a11y-keys": "PolymerElements/iron-a11y-keys#^1.0.6",
+    "iron-resizable-behavior": "PolymerElements/iron-resizable-behavior#^1.0.5"
   },
   "devDependencies": {
     "iron-component-page": "PolymerElements/iron-component-page#^1.0.0",

@@ -2,6 +2,7 @@
 <link rel="import" href="../neon-animation/neon-animated-pages.html">
 <link rel="import" href="../neon-animation/neon-animatable.html">
 <link rel="import" href="../neon-animation/neon-animations.html">
+<link rel="import" href="../iron-resizable-behavior/iron-resizable-behavior.html">
 <script src="../fabric.js/dist/fabric.js"></script>
 
 <!--
@@ -82,8 +83,12 @@ Drawing (and sharing) slide as Silvio Meira.
   <script>
     Polymer({
       is: 'mi-slide',
+      behaviors: [
+        Polymer.IronResizableBehavior
+      ],
       listeners: {
-        // 'tap': '_onNextClick'
+        // 'tap': '_onNextClick',
+        'iron-resize': '_onIronResize'
       },
       properties: {
         /** `slides` slides pages formatted into JSON specs
@@ -93,7 +98,7 @@ Drawing (and sharing) slide as Silvio Meira.
         slides: {
           type: Array,
           value: function(){
-            return ['img1.png', 'img2.png', 'img3.png'];
+            return [];
           },
           observer: "_slidesChanged"
         },
@@ -154,16 +159,18 @@ Drawing (and sharing) slide as Silvio Meira.
           var elem = this.querySelector("canvas");
           // HINT for random numbers based on:
           // https://github.com/rwth-acis/drawing-overlay/blob/master/drawing-overlay.html
-          elem.id += Math.floor((Math.random() * 100) + 1);
-          this.initialize(elem.id);
+          // elem.id += Math.floor((Math.random() * 100) + 1);
+          // this.canvasid = elem.id; 
+          this.initialize("canvas");
           if (!this.colorBrush) {
             this.colorBrush = 'rgba(220, 14, 61, 1)';
           };
           if (!this.widthBrush) {
             this.widthBrush = 3;
           }
-          console.log("CANVAS ABAIXO:");
-          console.log(this.canvas);
+         
+          console.log(this.offsetWidth);
+          console.log(this.offsetHeight);
       },
       _counterPages: function() {
         var pages = this.querySelectorAll("neon-animatable");
@@ -175,14 +182,16 @@ Drawing (and sharing) slide as Silvio Meira.
         }, 300);
       },
       initialize: function(referenceId) {
+          // 
+          var self = this;
           // create instance
           this.canvas = new fabric.Canvas(referenceId);
           // listening changes
           this.canvas.on('path:created', function(obj){
-              var lastOrder = this.canvas._objects.length - 1;
-              var lastObj = this.canvas._objects[lastOrder];
-              this.locker(lastObj);
-              this.noBorderAndControls(lastObj);
+              var lastOrder = self.canvas._objects.length - 1;
+              var lastObj = self.canvas._objects[lastOrder];
+              self.locker(lastObj);
+              self.noBorderAndControls(lastObj);
           });
           // activate drawing mode.
           this.canvas.isDrawingMode = true;
@@ -221,23 +230,6 @@ Drawing (and sharing) slide as Silvio Meira.
       _widthBrushChanged: function() {
           this.canvas.freeDrawingBrush.width = this.widthBrush;
       },
-      /**
-       * Adds a drawing object to the current drawing on the canvas.
-       *
-       * @param object A drawing object.
-       */
-      addObject: function(object) {
-          var canvas = this.canvas;
-          fabric.util.enlivenObjects([object], function(objects) {
-              var origRenderOnAddRemove = canvas.renderOnAddRemove;
-              canvas.renderOnAddRemove = false;
-              objects.forEach(function(o) {
-                  canvas.add(o);
-              });
-              canvas.renderOnAddRemove = origRenderOnAddRemove;
-              canvas.renderAll();
-          });
-      },
       /** `_onPrevClick` transition when left key pressed */
       _onPrevClick: function() {
         this.entryAnimation = 'slide-from-left-animation';
@@ -261,7 +253,27 @@ Drawing (and sharing) slide as Silvio Meira.
         this.entryAnimation = 'slide-from-bottom-animation';
         this.exitAnimation = 'slide-up-animation';
         this.selected = this.selected === 0 ? this._nPages - 1 : (this.selected - 1);
-      }                  
+      },
+      _onIronResize: function(){
+          console.log("resize done");
+          var canvas = this.$.canvas;
+          var canvasUp = this.querySelector('.upper-canvas');
+          // original canvasl
+          canvas.width = this.offsetWidth;
+          canvas.height = this.offsetHeight;
+          canvas.style.width = canvas.width + 'px';
+          canvas.style.height = canvas.height + 'px';
+          // fabric upper-canvas
+          canvasUp.width = this.offsetWidth;
+          canvasUp.height = this.offsetHeight;          
+          canvasUp.style.width = canvas.width + 'px';
+          canvasUp.style.height = canvas.height + 'px';
+          // fabric's instance canvas
+          this.canvas.width = canvas.width;
+          this.canvas.height = canvas.height;
+          // reset
+          this.canvas.renderAll();
+      }                 
     });
   </script>
 </dom-module>
