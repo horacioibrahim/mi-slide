@@ -1,7 +1,13 @@
 {
   "name": "mi-slide",
-  "description": "Drawing [and sharing[ slide as Silvio Meira",
+  "description": "Drawing [and sharing] slide as Silvio Meira",
   "main": "mi-slide.html",
+  "license": "MIT",
+  "destination_path": "bower_components",
+  "authors": [
+    "Horacio Ibrahim <horacioibrahim@gmail.com>"
+  ],
+  "private": false,  
   "dependencies": {
     "polymer": "Polymer/polymer#^1.4.0",
     "iron-pages": "PolymerElements/iron-pages#^1.0.8",
@@ -15,5 +21,20 @@
     "iron-demo-helpers": "PolymerElements/iron-demo-helpers#^1.0.0",
     "web-component-tester": "^4.0.0",
     "webcomponentsjs": "webcomponents/webcomponentsjs#^0.7.0"
-  }
+  },
+  "keywords": [
+    "web-component",
+    "web-components",
+    "polymer",
+    "slide-mi",
+    "mi-slide",
+    "drawing slide",
+    "sharing slide"
+  ],
+  "repository": {
+    "url": "git://github.com/horacioibrahim/slide-mi.git",
+    "type": "git"
+  },
+  "homepage": "http://horacioibrahim.github.io/slide-mi",
+  "description": "Web Component that allows you to drawing and share slides in live."   
 }
