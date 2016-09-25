@@ -33,7 +33,7 @@ Drawing (and sharing) slide as Silvio Meira.
         background: rgba(0,0,0,0.08);
       }
       neon-animated-pages img {
-        height: 100%;
+        width: 100%;
       }
       .slides-page {
         text-align: center;
@@ -61,6 +61,25 @@ Drawing (and sharing) slide as Silvio Meira.
         width: 100%;
         height: 100%;
       }
+      .centralizer {
+        display: block;
+        position: absolute;
+        text-align: center;
+        width: 100%;
+        height: 100%;
+        background: green;        
+      }
+      .centralizer-table {
+        display: table;
+        width: 100%;
+        height: 100%;         
+      }
+      .centralizer-cell {
+        display: table-cell;
+        vertical-align: middle;
+        width: 100%;
+      }
+
     </style>
     <div class="content-wrapper">
         <!-- Pages. A repeat flow based on slides.json -->
@@ -68,7 +87,13 @@ Drawing (and sharing) slide as Silvio Meira.
           <template is="dom-repeat" items="{{slides}}">
               <neon-animatable>
                 <div class="slides-page">
-                    <img src="{{item}}">
+                  <div class="centralizer">
+                      <div class="centralizer-table">
+                          <div class="centralizer-cell">
+                            <img src="{{item}}">
+                          </div>
+                      </div>
+                  </div>
                 </div>
               </neon-animatable>
           </template>
