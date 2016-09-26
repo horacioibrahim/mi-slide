@@ -59,7 +59,7 @@ Method  | Parameters    | Returns   | Description
 ### Events
 Event   | Description
 ---     | ---
-`mi-slide:json`| ire events with JSON values.
+`mi-slide:json`| fire events with JSON values from Fabric's canvas.
 
 ## Development
 
