@@ -23,6 +23,9 @@ Drawing (and sharing) slide as Silvio Meira.
         min-height: 100px;
         cursor: pointer;
       }
+      .content-wrapper {
+        transition: background-color 0.5s ease;
+      }
       neon-animated-pages {
         position: absolute;
         display: block;
@@ -103,7 +106,7 @@ Drawing (and sharing) slide as Silvio Meira.
             text-align: center;
         }
     </style>
-    <div class="content-wrapper">
+    <div id="wrapper" class="content-wrapper">
         <!-- Pages. A repeat flow based on slides.json -->
         <neon-animated-pages id="pages" selected="[[selected]]" entry-animation="[[entryAnimation]]" exit-animation="[[exitAnimation]]">
           <template is="dom-if" if="{{is_empty}}">
@@ -321,7 +324,7 @@ Drawing (and sharing) slide as Silvio Meira.
               this.canvas.freeDrawingBrush.width = this.widthBrush;
       },
       _backgroundColorChanged: function() {
-          var wrapper = this.querySelector('.content-wrapper');
+          var wrapper = this.$.wrapper;
           wrapper.style.background = this.backgroundColor;
       },
       /** `_onPrevClick` transition when left key pressed */
@@ -348,6 +351,8 @@ Drawing (and sharing) slide as Silvio Meira.
       },
       _onIronResize: function(){
           var canvas = this.$.canvas;
+          var cs = document.querySelectorAll('canvas');
+          console.log(cs);
           var canvasUp = this.querySelector('.upper-canvas');
           var canvasContainer = this.querySelector('.canvas-container');
           // original canvasl
