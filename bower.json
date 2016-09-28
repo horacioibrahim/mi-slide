@@ -1,6 +1,6 @@
 {
   "name": "mi-slide",
-  "description": "Web Component that allows you to drawing and share slides in live.",
+  "description": "Web Component that allows you to drawing (lines) and share slides in live.",
   "main": "mi-slide.html",
   "license": "MIT",
   "destination_path": "bower_components",
