@@ -10,7 +10,7 @@
 `mi-slide`
 Drawing (and sharing) slide as Silvio Meira.
 
-@demo demo/index.html 
+@demo demo/index.html
 -->
 <dom-module id="mi-slide">
   <template>
@@ -50,7 +50,7 @@ Drawing (and sharing) slide as Silvio Meira.
       .brand-table {
         display: table;
         width: 100%;
-        height: 100%;        
+        height: 100%;
       }
       .brand-cell {
         display: table-cell;
@@ -67,12 +67,12 @@ Drawing (and sharing) slide as Silvio Meira.
         text-align: center;
         width: 100%;
         height: 100%;
-        background: green;        
+        /* bg */
       }
       .centralizer-table {
         display: table;
         width: 100%;
-        height: 100%;         
+        height: 100%;
       }
       .centralizer-cell {
         display: table-cell;
@@ -97,13 +97,13 @@ Drawing (and sharing) slide as Silvio Meira.
                 </div>
               </neon-animatable>
           </template>
-        </neon-animated-pages> 
+        </neon-animated-pages>
         <!-- Remove this if necessary -->
         <div class="brand">
           <div class="brand-table">
             <div class="brand-cell">mi-slide</div>
           </div>
-        </div>  
+        </div>
         <!-- Canvas overlay -->
         <canvas id="canvas"  width="400" height="400"></canvas>
     </div>
@@ -122,7 +122,7 @@ Drawing (and sharing) slide as Silvio Meira.
       properties: {
         /** `slides` slides pages formatted into JSON specs
          * [{'title': 'Abc', 'backgroungImage': 'https://imgae.com/100/100'},...]
-         * 
+         *
          */
         slides: {
           type: Array,
@@ -136,15 +136,15 @@ Drawing (and sharing) slide as Silvio Meira.
           type: Number,
           value: 0
         },
-        /** `_nPages` numbers of pages of the presentation 
-         * automatically calculates by numbers of slides in JSON. 
+        /** `_nPages` numbers of pages of the presentation
+         * automatically calculates by numbers of slides in JSON.
         */
         _nPages: Number,
-        /** `_currentPage` current page. 
+        /** `_currentPage` current page.
         */
-        _currentPage: Number,        
+        _currentPage: Number,
         /** `_target` main object to listen keys pressed.
-         * 
+         *
          */
         _target: {
           type: Object,
@@ -153,10 +153,10 @@ Drawing (and sharing) slide as Silvio Meira.
           }
         },
         //****************** SETUP CANVAS ************************
-        /** `canvas` the canvas wrapper created by Fabric. 
-         */        
+        /** `canvas` the canvas wrapper created by Fabric.
+         */
         canvas: Object,
-        /** `colorBrush` brush color can be any regular HTML color 
+        /** `colorBrush` brush color can be any regular HTML color
          * as string.
          */
         colorBrush: {
@@ -177,7 +177,7 @@ Drawing (and sharing) slide as Silvio Meira.
           observer: "_backgroundColorChanged"
         },
         /** TODO: not implemented yet
-         * `streamingPoints` array with dots x,y generated 
+         * `streamingPoints` array with dots x,y generated
          * by mouse:move */
         streamingPoints: {
           type: Array,
@@ -199,7 +199,7 @@ Drawing (and sharing) slide as Silvio Meira.
           type: Boolean,
           value: true,
           notify: true
-        },  
+        },
         keyEventTarget: {
           type: Object,
           value: function() {
@@ -216,7 +216,7 @@ Drawing (and sharing) slide as Silvio Meira.
           // HINT for random numbers based on:
           // https://github.com/rwth-acis/drawing-overlay/blob/master/drawing-overlay.html
           // elem.id += Math.floor((Math.random() * 100) + 1);
-          // this.canvasid = elem.id; 
+          // this.canvasid = elem.id;
           this.initialize("canvas");
       },
       _counterPages: function() {
@@ -230,12 +230,12 @@ Drawing (and sharing) slide as Silvio Meira.
       },
       /** `initialize` setup of the fabric.js where controls and borders
        *  is disabled. The isDrawingMode is configured to true.
-       * 
+       *
        * @referenceId[String]: hold canvas id attribute value used as
        * selector.
        */
       initialize: function(referenceId) {
-          // 
+          //
           var self = this;
           // create instance
           this.canvas = new fabric.Canvas(referenceId);
@@ -247,13 +247,13 @@ Drawing (and sharing) slide as Silvio Meira.
               self.noBorderAndControls(lastObj);
               self._fireToJSON();
           });
-          // streaming point-to-point 
+          // streaming point-to-point
           this.canvas.on('mouse:down', function(obj){
-              self.canvas.on('mouse:move', self._moveHandler);              
+              self.canvas.on('mouse:move', self._moveHandler);
           });
           this.canvas.on('mouse:up', function(obj){
-              self.canvas.off('mouse:move', self._moveHandler);  
-          });           
+              self.canvas.off('mouse:move', self._moveHandler);
+          });
           // activate drawing mode.
           this.canvas.isDrawingMode = true;
           // brush setup
@@ -261,9 +261,9 @@ Drawing (and sharing) slide as Silvio Meira.
           this._widthBrushChanged();
           this._backgroundColorChanged()
       },
-      /** `locker` locks horizontal and vertical move, rotation 
+      /** `locker` locks horizontal and vertical move, rotation
        * and scaling properties of a fabric.Path.
-       * 
+       *
        * @obj: is a fabric.Path (fabric's object)
       */
       locker: function(obj){
@@ -272,9 +272,9 @@ Drawing (and sharing) slide as Silvio Meira.
           obj.lockRotation = true;
           obj.lockScaling = true;
       },
-      /** `noBorderAndControls` hide bordes and controls of the object. 
-       * 
-       * @obj: is a fabric.Path (fabric's object) 
+      /** `noBorderAndControls` hide bordes and controls of the object.
+       *
+       * @obj: is a fabric.Path (fabric's object)
       */
       noBorderAndControls: function(obj) {
           obj.hasControls = false;
@@ -282,29 +282,29 @@ Drawing (and sharing) slide as Silvio Meira.
       },
       _colorBrushChanged: function() {
           if (this.canvas)
-              this.canvas.freeDrawingBrush.color = this.colorBrush; 
+              this.canvas.freeDrawingBrush.color = this.colorBrush;
       },
       _widthBrushChanged: function() {
           if (this.canvas)
               this.canvas.freeDrawingBrush.width = this.widthBrush;
       },
       _backgroundColorChanged: function() {
-          var contentWrapper = this.querySelector('.content-wrapper');
-          contentWrapper.style.background = this.backgroundColor;
+          var wrapper = this.querySelector('.content-wrapper');
+          wrapper.style.background = this.backgroundColor;
       },
       /** `_onPrevClick` transition when left key pressed */
       _onPrevClick: function(event) {
         this.entryAnimation = 'slide-from-left-animation';
         this.exitAnimation = 'slide-right-animation';
-        this.selected = this.selected === 0 ? this._nPages - 1 : (this.selected - 1);    
-        this._afterClick(event);  
+        this.selected = this.selected === 0 ? this._nPages - 1 : (this.selected - 1);
+        this._afterClick(event);
       },
       /** `_onNextClick` transition when right key pressed */
       _onNextClick: function(event) {
         this.entryAnimation = 'slide-from-right-animation';
         this.exitAnimation = 'slide-left-animation';
-        this.selected = this.selected === this._nPages - 1 ? 0 : (this.selected + 1);   
-        this._afterClick(event);      
+        this.selected = this.selected === this._nPages - 1 ? 0 : (this.selected + 1);
+        this._afterClick(event);
       },
       _afterClick: function(event) {
         // clear canvas
@@ -312,8 +312,8 @@ Drawing (and sharing) slide as Silvio Meira.
         // avoid propagation
         if (this.preventDefault) {
           event.preventDefault();
-        }  
-      },     
+        }
+      },
       _onIronResize: function(){
           var canvas = this.$.canvas;
           var canvasUp = this.querySelector('.upper-canvas');
@@ -325,14 +325,14 @@ Drawing (and sharing) slide as Silvio Meira.
           canvas.style.height = canvas.height + 'px';
           // fabric upper-canvas
           canvasUp.width = this.offsetWidth;
-          canvasUp.height = this.offsetHeight;          
+          canvasUp.height = this.offsetHeight;
           canvasUp.style.width = canvas.width + 'px';
           canvasUp.style.height = canvas.height + 'px';
           // fabric canvasContainer
           canvasContainer.width = this.offsetWidth;
-          canvasContainer.height = this.offsetHeight;          
+          canvasContainer.height = this.offsetHeight;
           canvasContainer.style.width = canvas.width + 'px';
-          canvasContainer.style.height = canvas.height + 'px';          
+          canvasContainer.style.height = canvas.height + 'px';
           // fabric's instance canvas
           this.canvas.width = canvas.width;
           this.canvas.height = canvas.height;
@@ -344,17 +344,16 @@ Drawing (and sharing) slide as Silvio Meira.
        * for update drawing in the remote view.
        */
       _moveHandler: function(obj){
-          var mi = document.querySelector('mi-slide');  
+          var mi = document.querySelector('mi-slide');
           mi.streamingPoints.push([obj.e.x, obj.e.y]);
       },
       /** `_fireToJSON` fire events with JSON values
-       * 
+       *
        */
       _fireToJSON: function(){
           var d = this.canvas.toJSON();
           this.fire('mi-slide:json', {dump: d});
-      }                    
+      }
     });
   </script>
 </dom-module>
-
