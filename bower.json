@@ -26,14 +26,14 @@
     "web-component",
     "web-components",
     "polymer",
-    "slide-mi",
+    "mi-slide",
     "mi-slide",
     "drawing slide",
     "sharing slide"
   ],
   "repository": {
-    "url": "git://github.com/horacioibrahim/slide-mi.git",
+    "url": "git://github.com/horacioibrahim/mi-slide.git",
     "type": "git"
   },
-  "homepage": "http://horacioibrahim.github.io/slide-mi"
+  "homepage": "http://horacioibrahim.github.io/mi-slide"
 }
