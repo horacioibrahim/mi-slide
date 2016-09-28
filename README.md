@@ -4,17 +4,17 @@
 
 ## Demo
 
-[Check it live!](http://horacioibrahim.github.io/slide-mi)
+[Check it live!](http://horacioibrahim.github.io/mi-slide)
 
 ## Install
 
 Install the component using [Bower](http://bower.io):
 
 ```sh
-$ bower install slide-mi --save
+$ bower install mi-slide --save
 ```
 
-Or [download a ZIP](https://github.com/horacioibrahim/slide-mi/archive/gh-pages.zip)
+Or [download a ZIP](https://github.com/horacioibrahim/mi-slide/archive/gh-pages.zip)
 
 ## Usage
 
@@ -93,7 +93,7 @@ In order to run it locally you'll need to fetch some dependencies and a basic se
 
 ## History
 
-For detailed changelog, check [Releases](https://github.com/horacioibrahim/slide-mi/releases).
+For detailed changelog, check [Releases](https://github.com/horacioibrahim/mi-slide/releases).
 
 
 ## License
