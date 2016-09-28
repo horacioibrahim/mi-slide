@@ -79,11 +79,40 @@ Drawing (and sharing) slide as Silvio Meira.
         vertical-align: middle;
         width: 100%;
       }
-
+      .slide-empty {
+         display: table;
+          width: 100%;
+          height: 100%;
+       }
+       .slide-empty .slide-cell {
+            display: table-cell;
+            width: 100%;
+            height: 100%;
+            vertical-align: middle;
+            text-align: center;
+        }
+        .slide-empty .slide-cell img {
+            width: 50%;
+            opacity: 0.34;
+        }
+        .slide-empty .slide-cell:before {
+            content: 'Oops! Slides not defined.';
+            display: block;
+            color: rgba(0,0,0,0.34);
+            font-size: 1em;
+            text-align: center;
+        }
     </style>
     <div class="content-wrapper">
         <!-- Pages. A repeat flow based on slides.json -->
         <neon-animated-pages id="pages" selected="[[selected]]" entry-animation="[[entryAnimation]]" exit-animation="[[exitAnimation]]">
+          <template is="dom-if" if="{{is_empty}}">
+              <div class="slide-empty">
+                  <div class="slide-cell">
+                      <img src="slides_empty.svg">
+                  </div>
+              </div>
+          </template>
           <template is="dom-repeat" items="{{slides}}">
               <neon-animatable>
                 <div class="slides-page">
@@ -98,12 +127,6 @@ Drawing (and sharing) slide as Silvio Meira.
               </neon-animatable>
           </template>
         </neon-animated-pages>
-        <!-- Remove this if necessary -->
-        <div class="brand">
-          <div class="brand-table">
-            <div class="brand-cell">mi-slide</div>
-          </div>
-        </div>
         <!-- Canvas overlay -->
         <canvas id="canvas"  width="400" height="400"></canvas>
     </div>
@@ -151,6 +174,12 @@ Drawing (and sharing) slide as Silvio Meira.
           value: function() {
             return document.querySelector("body");
           }
+        },
+        /** `is_empty` if no slides exists this value is true.
+        */
+        is_empty: {
+            type: Boolean,
+            value: false
         },
         //****************** SETUP CANVAS ************************
         /** `canvas` the canvas wrapper created by Fabric.
@@ -226,6 +255,9 @@ Drawing (and sharing) slide as Silvio Meira.
       _slidesChanged: function(){
         this.async(function(){
           this._nPages = this._counterPages();
+          if (this.slides.length == 0) {
+             this.is_empty = true;
+          };
         }, 300);
       },
       /** `initialize` setup of the fabric.js where controls and borders
