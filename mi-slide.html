@@ -295,6 +295,11 @@ Drawing (and sharing) slide as Silvio Meira.
           this._colorBrushChanged();
           this._widthBrushChanged();
           this._backgroundColorChanged()
+
+          // wrapperEl
+          this.canvas.wrapperEl.insertBefore(self.$.canvas, this.canvas.wrapperEl.childNodes[1]);
+          console.log(this.canvas.wrapperEl);
+          self.appendChild(self.canvas.wrapperEl);
       },
       /** `locker` locks horizontal and vertical move, rotation
        * and scaling properties of a fabric.Path.
@@ -351,28 +356,27 @@ Drawing (and sharing) slide as Silvio Meira.
       },
       _onIronResize: function(){
           var canvas = this.$.canvas;
-          var cs = document.querySelectorAll('canvas');
-          console.log(cs);
-          var canvasUp = this.querySelector('.upper-canvas');
+          var cs = this.querySelectorAll('canvas');
+          var w = this.offsetWidth;
+          var h = this.offsetHeight;
+
           var canvasContainer = this.querySelector('.canvas-container');
-          // original canvasl
-          canvas.width = this.offsetWidth;
-          canvas.height = this.offsetHeight;
-          canvas.style.width = canvas.width + 'px';
-          canvas.style.height = canvas.height + 'px';
-          // fabric upper-canvas
-          canvasUp.width = this.offsetWidth;
-          canvasUp.height = this.offsetHeight;
-          canvasUp.style.width = canvas.width + 'px';
-          canvasUp.style.height = canvas.height + 'px';
           // fabric canvasContainer
-          canvasContainer.width = this.offsetWidth;
-          canvasContainer.height = this.offsetHeight;
-          canvasContainer.style.width = canvas.width + 'px';
-          canvasContainer.style.height = canvas.height + 'px';
+          canvasContainer.width = w;
+          canvasContainer.height = h;
+          canvasContainer.style.width = w + 'px';
+          canvasContainer.style.height = h + 'px';
+          // all canvas
+          for (var i=0; i < cs.length; i++) {
+              cs[i].width = w;
+              cs[i].height = h;
+              cs[i].style.width = w + 'px';
+              cs[i].style.height = h + 'px';
+          }
+
           // fabric's instance canvas
-          this.canvas.width = canvas.width;
-          this.canvas.height = canvas.height;
+          this.canvas.width = w;
+          this.canvas.height = h;
           // reset
           this.canvas.renderAll();
       },
