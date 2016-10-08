@@ -4,7 +4,7 @@
 <link rel="import" href="../neon-animation/neon-animations.html">
 <link rel="import" href="../iron-resizable-behavior/iron-resizable-behavior.html">
 <link rel="import" href="../iron-a11y-keys-behavior/iron-a11y-keys-behavior.html">
-<script src="../fabric.js/dist/fabric.js"></script>
+<script src="../fabric.js/dist/fabric.min.js"></script>
 
 <!--
 `mi-slide`
@@ -184,6 +184,14 @@ Drawing (and sharing) slide as Silvio Meira.
             type: Boolean,
             value: false
         },
+        /** `is_viewer` is useful for used as 'viewer mode' where 
+         * no can interact eg. forward or backward slides, draw
+         * lines, etc.
+         */
+        is_viewer: {
+            type: Boolean,
+            value: false
+        },
         //****************** SETUP CANVAS ************************
         /** `canvas` the canvas wrapper created by Fabric.
          */
@@ -203,7 +211,7 @@ Drawing (and sharing) slide as Silvio Meira.
           observer: "_widthBrushChanged"
         },
         /** `backgroundColor` sets the background color of the canvas */
-        backgroundColor: {
+        bgcolor: {
           type: String,
           value: 'rgba(255,255,255,1)',
           observer: "_backgroundColorChanged"
@@ -240,10 +248,13 @@ Drawing (and sharing) slide as Silvio Meira.
         }
       },
       keyBindings: {
-        'left': '_onPrevClick',
-        'right': '_onNextClick',
+        'left': 'onPrevClick',
+        'right': 'onNextClick',
       },
       ready: function() {
+          if (this.is_viewer)
+              return;
+
           var elem = this.querySelector("canvas");
           // HINT for random numbers based on:
           // https://github.com/rwth-acis/drawing-overlay/blob/master/drawing-overlay.html
@@ -271,6 +282,9 @@ Drawing (and sharing) slide as Silvio Meira.
        */
       initialize: function(referenceId) {
           //
+          if (this.is_viewer)
+              return;
+
           var self = this;
           // create instance
           this.canvas = new fabric.Canvas(referenceId);
@@ -298,7 +312,6 @@ Drawing (and sharing) slide as Silvio Meira.
 
           // wrapperEl
           this.canvas.wrapperEl.insertBefore(self.$.canvas, this.canvas.wrapperEl.childNodes[1]);
-          console.log(this.canvas.wrapperEl);
           self.appendChild(self.canvas.wrapperEl);
       },
       /** `locker` locks horizontal and vertical move, rotation
@@ -329,18 +342,23 @@ Drawing (and sharing) slide as Silvio Meira.
               this.canvas.freeDrawingBrush.width = this.widthBrush;
       },
       _backgroundColorChanged: function() {
-          var wrapper = this.$.wrapper;
-          wrapper.style.background = this.backgroundColor;
+          this.style.backgroundColor = this.bgcolor;
       },
       /** `_onPrevClick` transition when left key pressed */
-      _onPrevClick: function(event) {
+      onPrevClick: function(event) {
+          if (this.is_viewer)
+              return;
+
         this.entryAnimation = 'slide-from-left-animation';
         this.exitAnimation = 'slide-right-animation';
         this.selected = this.selected === 0 ? this._nPages - 1 : (this.selected - 1);
         this._afterClick(event);
       },
       /** `_onNextClick` transition when right key pressed */
-      _onNextClick: function(event) {
+      onNextClick: function(event) {
+          if (this.is_viewer)
+              return;
+
         this.entryAnimation = 'slide-from-right-animation';
         this.exitAnimation = 'slide-left-animation';
         this.selected = this.selected === this._nPages - 1 ? 0 : (this.selected + 1);
@@ -350,11 +368,14 @@ Drawing (and sharing) slide as Silvio Meira.
         // clear canvas
         this.canvas.clear();
         // avoid propagation
-        if (this.preventDefault) {
+        if (event && this.preventDefault) {
           event.preventDefault();
         }
       },
       _onIronResize: function(){
+          if (this.is_viewer)
+              return;
+
           var canvas = this.$.canvas;
           var cs = this.querySelectorAll('canvas');
           var w = this.offsetWidth;
