@@ -135,8 +135,8 @@ Drawing (and sharing) slide as Silvio Meira.
                           M20.391,17.81c1.113,0,1.997-0.883,1.997-1.997c0-1.113-0.883-1.997-1.997-1.997c-1.114,0-1.997,0.883-1.997,1.997
                           C18.394,16.926,19.277,17.81,20.391,17.81z M20.391,14.584c0.691,0,1.229,0.538,1.229,1.229c0,0.691-0.538,1.229-1.229,1.229
                           c-0.691,0-1.229-0.538-1.229-1.229C19.162,15.122,19.699,14.584,20.391,14.584z"/>
-                        </svg>
-                       </div>
+                        </svg>   
+                       </div>                    
                   </div>
               </div>
           </template>
@@ -184,7 +184,8 @@ Drawing (and sharing) slide as Silvio Meira.
         /** `selected` variable hold the seletec page */
         selected: {
           type: Number,
-          value: 0
+          value: 0,
+          observer: "_selectedChanged"
         },
         /** `_nPages` numbers of pages of the presentation
          * automatically calculates by numbers of slides in JSON.
@@ -208,7 +209,7 @@ Drawing (and sharing) slide as Silvio Meira.
             type: Boolean,
             value: false
         },
-        /** `is_viewer` is useful for used as 'viewer mode' where
+        /** `is_viewer` is useful for used as 'viewer mode' where 
          * no can interact eg. forward or backward slides, draw
          * lines, etc.
          */
@@ -240,16 +241,6 @@ Drawing (and sharing) slide as Silvio Meira.
           value: 'rgba(255,255,255,1)',
           observer: "_backgroundColorChanged"
         },
-        /** TODO: not implemented yet
-         * `streamingPoints` array with dots x,y generated
-         * by mouse:move */
-        streamingPoints: {
-          type: Array,
-          value: function(){
-            var arr = new Array;
-            return arr;
-          }
-        },
         /** `historySlides` write the drawn lines in presentation.
          */
         historySlides: {
@@ -269,6 +260,18 @@ Drawing (and sharing) slide as Silvio Meira.
           value: function() {
             return document.body;
           }
+        },
+        /** `drawing` stores true when user is drawing rather 
+        * returns false.
+        */
+        drawing: {
+            type: Boolean,
+            value: false
+        },
+        // temporary property for tests.
+        liveid: {
+            type: String,
+            observer: "_liveStarted"
         }
       },
       keyBindings: {
@@ -312,6 +315,10 @@ Drawing (and sharing) slide as Silvio Meira.
           var self = this;
           // create instance
           this.canvas = new fabric.Canvas(referenceId);
+          
+          // listener live strokes. In the moment drawing.
+          this.canvas._handleEvent = this._handlerEvent;
+          
           // listening changes
           this.canvas.on('path:created', function(obj){
               var lastOrder = self.canvas._objects.length - 1;
@@ -320,13 +327,6 @@ Drawing (and sharing) slide as Silvio Meira.
               self.noBorderAndControls(lastObj);
               self._fireToJSON();
           });
-          // streaming point-to-point
-          this.canvas.on('mouse:down', function(obj){
-              self.canvas.on('mouse:move', self._moveHandler);
-          });
-          this.canvas.on('mouse:up', function(obj){
-              self.canvas.off('mouse:move', self._moveHandler);
-          });
           // activate drawing mode.
           this.canvas.isDrawingMode = true;
           // brush setup
@@ -334,7 +334,7 @@ Drawing (and sharing) slide as Silvio Meira.
           this._widthBrushChanged();
           this._backgroundColorChanged()
 
-          // Workaound beacause fabric.js not found the localDOM. See scopeSubtree
+          // Workaround beacause fabric.js not found the localDOM. See scopeSubtree
           // for strict element that contains fabric objects can work.
           // link: https://www.polymer-project.org/1.0/docs/devguide/styling#scope-subtree
           // wrapperEl
@@ -402,7 +402,7 @@ Drawing (and sharing) slide as Silvio Meira.
       _onIronResize: function(){
           if (this.is_viewer)
               return;
-
+         
           var canvas = this.$.canvas;
           var cs = this.querySelectorAll('canvas');
           var w = this.offsetWidth;
@@ -428,20 +428,109 @@ Drawing (and sharing) slide as Silvio Meira.
           // reset
           this.canvas.renderAll();
       },
-      /** TODO: not implemented yet
-       * `_moveHandler` get x,y from mouse:move and create streaming
-       * for update drawing in the remote view.
-       */
-      _moveHandler: function(obj){
-          var mi = document.querySelector('mi-slide');
-          mi.streamingPoints.push([obj.e.x, obj.e.y]);
-      },
       /** `_fireToJSON` fire events with JSON values
        *
        */
       _fireToJSON: function(){
           var d = this.canvas.toJSON();
           this.fire('mi-slide:json', {dump: d});
+      },
+      /** `_handlerEvent` provide by fabric for handling
+      * changes in the canvas.
+      * @param p: provided by fabric that represents the current point
+      * @param etype: type of interctation as down, up, move, 
+      * @param t: target  //not work for me.
+      */
+      _handlerEvent: function(p, etype, t){
+           // TODO: Safari require document->body->mi-slide
+           var self = document.querySelector("mi-slide");
+           var drawing = self.drawing;
+           var objs = self.canvas.getObjects();
+           var index = objs.length;
+           var canvasH = self.canvas.height;
+           var canvasW = self.canvas.width;
+           //console.log("###########");
+           //console.log(etype);
+           //console.log(p);
+           if (etype == "down" || etype == "touchstart") { drawing = true; points = []; moves = []}
+           if (etype == "up" || etype == "touchend") { drawing = false;}
+           if (drawing) {
+             //console.log("desenhar: ");
+             var c = self.canvas.getElement();
+             var position = c.getBoundingClientRect();
+             var px = 'x' in p ? p.layerX : p.layerX;
+             var py = 'y' in p ? p.layerY : p.layerY;
+             // console.log(p.x, p.layerX);
+             // console.log(py);   
+             // point = {x: px - position.left, y: py - position.top};
+             point = {x: px, y: py, h: canvasH, w: canvasW};
+             //console.log(mi.canvas.relativePan(point));
+             points.push(point);
+             moves.push(p);
+             // var plyne = new fabric.Polyline(points, {stroke: 'red', strokeWidth: 5, fill: null});
+             //self.canvas.insertAt(plyne, objs.length);
+             data = {
+                 createdAt: app.getTimestamp(),
+                 indexPos: index,
+                 plyne: points
+             }
+             // console.log(JSON.stringify(data));
+             // TODO: this is must be implemented outside of custom element
+             // as a callback. 
+             
+             if (self.liveid) {
+                firebase.database().ref('lives/' + self.liveid + '/data/' + self.selected).push(data);    
+             } else {
+                 console.log("Live not started...");
+             }
+           }
+           self.drawing = drawing;
+      },       
+      /** `listenerFirebaseInsertAt` listen add_child.
+      * TODO: implement your method for compatibility or migrations
+      */
+      listenerFirebaseInsertAt: function() {
+          var self = this;
+          var liveid = this.liveid;
+          //live data
+          var ref = firebase.database().ref('lives/' + liveid + '/data/' + self.selected);
+          ref.on('child_added', function(snapshot){
+              var m = snapshot.val();
+              var plyne = new fabric.Polyline(m.plyne, {stroke: 'red', strokeWidth: 5, fill: null});
+              self.canvas.insertAt(plyne, m.indexPos);
+              // self.canvas.insertAt()
+          });
+          //live page
+          var refPage = firebase.database().ref('lives/' + liveid);
+          refPage.on('child_changed', function(snapshot){
+             var changed = snapshot.val();
+             var page;
+              if (typeof(changed) == "number") {
+                  page = parseInt(changed.page);
+              } else if ("page" in changed) {
+                  page = parseInt(changed.page);
+                  console.log(page);
+              }
+              self.selected = page;
+          });
+      },
+      _liveStarted: function() {
+          var presenter = app.properties.is_presenter;
+          // presenter not require to listen updates.
+          console.log(presenter);
+          if (!presenter) {
+            this.listenerFirebaseInsertAt();    
+          } 
+      },
+      _selectedChanged: function(){
+          var liveid = this.liveid;
+          var page = this.selected;
+          var presenter = app.properties.is_presenter;
+          console.log(presenter);
+          console.log(liveid);
+          if (liveid && presenter) {
+             firebase.database().ref("lives/" + liveid + '/page').set(page);    
+          }
       }
     });
   </script>
